@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { build } from "./index";
+import { and, contains, gt } from "./helpers";
 
 describe("build", () => {
   it("renders $top", () => {
@@ -38,5 +39,18 @@ describe("build", () => {
     expect(build({ top: 10, skip: 20, count: true })).toBe(
       "?$top=10&$skip=20&$count=true",
     );
+  });
+
+  it("renders $filter", () => {
+    expect(build({ filter: gt("Age", 18) })).toBe("?$filter=Age gt 18");
+  });
+
+  it("renders a compound $filter alongside other options", () => {
+    expect(
+      build({
+        filter: and(gt("Age", 18), contains("Name", "ob")),
+        top: 5,
+      }),
+    ).toBe("?$top=5&$filter=Age gt 18 and contains(Name,'ob')");
   });
 });

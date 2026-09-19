@@ -1,3 +1,5 @@
+import { renderFilter, type FilterNode } from "./filter";
+
 export type OrderByItem =
   | string
   | { field: string; direction?: "asc" | "desc" };
@@ -8,6 +10,7 @@ export interface QueryOptions {
   count?: boolean;
   select?: string[];
   orderBy?: OrderByItem[];
+  filter?: FilterNode;
 }
 
 const top = (n?: number) => (n === undefined ? undefined : `$top=${n}`);
@@ -29,6 +32,9 @@ const orderBy = (items?: OrderByItem[]) => {
   return `$orderby=${parts.join(",")}`;
 };
 
+const filter = (node?: FilterNode) =>
+  node === undefined ? undefined : `$filter=${renderFilter(node)}`;
+
 export function build(options: QueryOptions = {}): string {
   const parts = [
     top(options.top),
@@ -36,7 +42,24 @@ export function build(options: QueryOptions = {}): string {
     count(options.count),
     select(options.select),
     orderBy(options.orderBy),
+    filter(options.filter),
   ].filter((p): p is string => p !== undefined);
 
   return parts.length ? `?${parts.join("&")}` : "";
 }
+
+export type { FilterNode, FilterValue, ComparisonOp, FilterFn } from "./filter";
+export {
+  eq,
+  ne,
+  gt,
+  ge,
+  lt,
+  le,
+  contains,
+  startsWith,
+  endsWith,
+  and,
+  or,
+  not,
+} from "./helpers";
