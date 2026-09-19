@@ -11,7 +11,10 @@ export interface QueryOptions {
   select?: string[];
   orderBy?: OrderByItem[];
   filter?: FilterNode;
+  expand?: ExpandItem[];
 }
+
+export type ExpandItem = string | { path: string; options?: QueryOptions };
 
 const top = (n?: number) => (n === undefined ? undefined : `$top=${n}`);
 const skip = (n?: number) => (n === undefined ? undefined : `$skip=${n}`);
@@ -35,6 +38,15 @@ const orderBy = (items?: OrderByItem[]) => {
 const filter = (node?: FilterNode) =>
   node === undefined ? undefined : `$filter=${renderFilter(node)}`;
 
+const expand = (items?: ExpandItem[]) =>
+  items?.length
+    ? `$expand=${items.map(renderExpandItem).join(",")}`
+    : undefined;
+
+function renderExpandItem(item: ExpandItem): string {
+  return typeof item === "string" ? item : item.path;
+}
+
 export function build(options: QueryOptions = {}): string {
   const parts = [
     top(options.top),
@@ -43,6 +55,7 @@ export function build(options: QueryOptions = {}): string {
     select(options.select),
     orderBy(options.orderBy),
     filter(options.filter),
+    expand(options.expand),
   ].filter((p): p is string => p !== undefined);
 
   return parts.length ? `?${parts.join("&")}` : "";

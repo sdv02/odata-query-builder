@@ -53,4 +53,21 @@ describe("build", () => {
       }),
     ).toBe("?$top=5&$filter=Age gt 18 and contains(Name,'ob')");
   });
+
+  it("renders a simple $expand", () => {
+    expect(build({ expand: ["Orders"] })).toBe("?$expand=Orders");
+    expect(build({ expand: ["Orders", "Address"] })).toBe(
+      "?$expand=Orders,Address",
+    );
+  });
+
+  it("omits $expand when the list is empty", () => {
+    expect(build({ expand: [] })).toBe("");
+  });
+
+  it("renders $expand alongside other options", () => {
+    expect(build({ top: 5, expand: ["Orders"] })).toBe(
+      "?$top=5&$expand=Orders",
+    );
+  });
 });
