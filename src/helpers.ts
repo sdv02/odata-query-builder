@@ -1,4 +1,9 @@
-import type { ComparisonOp, FilterFn, FilterNode, FilterValue } from "./filter";
+import type {
+  ComparisonOp,
+  FilterFn,
+  FilterNode,
+  FilterValue,
+} from "./filter.js";
 
 const cmp =
   (op: ComparisonOp) =>

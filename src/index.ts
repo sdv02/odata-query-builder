@@ -1,5 +1,5 @@
-import { renderFilter, type FilterNode } from "./filter";
-import { encodeQuery } from "./encode";
+import { renderFilter, type FilterNode } from "./filter.js";
+import { encodeQuery } from "./encode.js";
 
 export interface BuildConfig {
   /** Percent-encode the result (default: true). */
@@ -76,7 +76,12 @@ function renderExpandItem(item: ExpandItem): string {
   return inner ? `${item.path}(${inner})` : item.path;
 }
 
-export type { FilterNode, FilterValue, ComparisonOp, FilterFn } from "./filter";
+export type {
+  FilterNode,
+  FilterValue,
+  ComparisonOp,
+  FilterFn,
+} from "./filter.js";
 export {
   eq,
   ne,
@@ -90,4 +95,4 @@ export {
   and,
   or,
   not,
-} from "./helpers";
+} from "./helpers.js";
