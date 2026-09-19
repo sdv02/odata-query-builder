@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { build } from "./index";
-import { and, contains, gt } from "./helpers";
+import { and, contains, eq, gt } from "./helpers";
 
 describe("build", () => {
   it("renders $top", () => {
@@ -31,7 +31,10 @@ describe("build", () => {
   it("renders $orderby", () => {
     expect(build({ orderBy: ["Name"] })).toBe("?$orderby=Name");
     expect(
-      build({ orderBy: [{ field: "Age", direction: "desc" }, "Name"] }),
+      build(
+        { orderBy: [{ field: "Age", direction: "desc" }, "Name"] },
+        { encode: false },
+      ),
     ).toBe("?$orderby=Age desc,Name");
   });
 
@@ -42,15 +45,20 @@ describe("build", () => {
   });
 
   it("renders $filter", () => {
-    expect(build({ filter: gt("Age", 18) })).toBe("?$filter=Age gt 18");
+    expect(build({ filter: gt("Age", 18) }, { encode: false })).toBe(
+      "?$filter=Age gt 18",
+    );
   });
 
   it("renders a compound $filter alongside other options", () => {
     expect(
-      build({
-        filter: and(gt("Age", 18), contains("Name", "ob")),
-        top: 5,
-      }),
+      build(
+        {
+          filter: and(gt("Age", 18), contains("Name", "ob")),
+          top: 5,
+        },
+        { encode: false },
+      ),
     ).toBe("?$top=5&$filter=Age gt 18 and contains(Name,'ob')");
   });
 
@@ -73,22 +81,28 @@ describe("build", () => {
 
   it("renders nested $select inside $expand", () => {
     expect(
-      build({
-        expand: [{ path: "Orders", options: { select: ["Id", "Total"] } }],
-      }),
+      build(
+        {
+          expand: [{ path: "Orders", options: { select: ["Id", "Total"] } }],
+        },
+        { encode: false },
+      ),
     ).toBe("?$expand=Orders($select=Id,Total)");
   });
 
   it("joins nested options with ;", () => {
     expect(
-      build({
-        expand: [
-          {
-            path: "Orders",
-            options: { filter: gt("Total", 10), select: ["Id"] },
-          },
-        ],
-      }),
+      build(
+        {
+          expand: [
+            {
+              path: "Orders",
+              options: { filter: gt("Total", 10), select: ["Id"] },
+            },
+          ],
+        },
+        { encode: false },
+      ),
     ).toBe("?$expand=Orders($filter=Total gt 10;$select=Id)");
   });
 
@@ -116,6 +130,18 @@ describe("build", () => {
   it("renders no parentheses when nested options are empty", () => {
     expect(build({ expand: [{ path: "Orders", options: {} }] })).toBe(
       "?$expand=Orders",
+    );
+  });
+
+  it("percent-encodes by default", () => {
+    expect(build({ filter: eq("Name", "a&b c") })).toBe(
+      "?$filter=Name%20eq%20'a%26b%20c'",
+    );
+  });
+
+  it("can skip encoding", () => {
+    expect(build({ filter: eq("Name", "a&b c") }, { encode: false })).toBe(
+      "?$filter=Name eq 'a&b c'",
     );
   });
 });

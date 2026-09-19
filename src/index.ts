@@ -1,5 +1,10 @@
 import { renderFilter, type FilterNode } from "./filter";
+import { encodeQuery } from "./encode";
 
+export interface BuildConfig {
+  /** Percent-encode the result (default: true). */
+  encode?: boolean;
+}
 export type OrderByItem =
   | string
   | { field: string; direction?: "asc" | "desc" };
@@ -55,9 +60,14 @@ function renderParts(options: QueryOptions = {}): string[] {
   ].filter((p): p is string => p !== undefined);
 }
 
-export function build(options: QueryOptions = {}): string {
-  const parts = renderParts(options);
-  return parts.length ? `?${parts.join("&")}` : "";
+export function build(
+  options: QueryOptions = {},
+  config: BuildConfig = {},
+): string {
+  const { encode = true } = config;
+  const query = renderParts(options).join("&");
+  if (!query) return "";
+  return `?${encode ? encodeQuery(query) : query}`;
 }
 
 function renderExpandItem(item: ExpandItem): string {
