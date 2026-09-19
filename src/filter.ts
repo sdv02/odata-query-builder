@@ -25,3 +25,28 @@ export function formatValue(value: FilterValue): string {
       return String(value);
   }
 }
+
+export function renderFilter(node: FilterNode): string {
+  switch (node.type) {
+    case "comparison":
+      return `${node.field} ${node.op} ${formatValue(node.value)}`;
+
+    case "function":
+      return `${node.name}(${node.field},${formatValue(node.value)})`;
+
+    case "not":
+      return `not (${renderFilter(node.condition)})`;
+
+    case "group": {
+      if (node.conditions.length === 0) {
+        throw new Error("Filter group must contain at least one condition");
+      }
+      const parts = node.conditions.map((child) => {
+        const text = renderFilter(child);
+        const needsParens = child.type === "group" && child.op !== node.op;
+        return needsParens ? `(${text})` : text;
+      });
+      return parts.join(` ${node.op} `);
+    }
+  }
+}
