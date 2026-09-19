@@ -70,4 +70,52 @@ describe("build", () => {
       "?$top=5&$expand=Orders",
     );
   });
+
+  it("renders nested $select inside $expand", () => {
+    expect(
+      build({
+        expand: [{ path: "Orders", options: { select: ["Id", "Total"] } }],
+      }),
+    ).toBe("?$expand=Orders($select=Id,Total)");
+  });
+
+  it("joins nested options with ;", () => {
+    expect(
+      build({
+        expand: [
+          {
+            path: "Orders",
+            options: { filter: gt("Total", 10), select: ["Id"] },
+          },
+        ],
+      }),
+    ).toBe("?$expand=Orders($filter=Total gt 10;$select=Id)");
+  });
+
+  it("supports expand within expand", () => {
+    expect(
+      build({
+        expand: [
+          {
+            path: "Orders",
+            options: {
+              expand: [{ path: "Items", options: { select: ["Sku"] } }],
+            },
+          },
+        ],
+      }),
+    ).toBe("?$expand=Orders($expand=Items($select=Sku))");
+  });
+
+  it("mixes plain and nested items", () => {
+    expect(
+      build({ expand: ["Address", { path: "Orders", options: { top: 3 } }] }),
+    ).toBe("?$expand=Address,Orders($top=3)");
+  });
+
+  it("renders no parentheses when nested options are empty", () => {
+    expect(build({ expand: [{ path: "Orders", options: {} }] })).toBe(
+      "?$expand=Orders",
+    );
+  });
 });

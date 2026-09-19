@@ -43,22 +43,27 @@ const expand = (items?: ExpandItem[]) =>
     ? `$expand=${items.map(renderExpandItem).join(",")}`
     : undefined;
 
-function renderExpandItem(item: ExpandItem): string {
-  return typeof item === "string" ? item : item.path;
-}
-
-export function build(options: QueryOptions = {}): string {
-  const parts = [
+function renderParts(options: QueryOptions = {}): string[] {
+  return [
     top(options.top),
     skip(options.skip),
     count(options.count),
+    filter(options.filter),
     select(options.select),
     orderBy(options.orderBy),
-    filter(options.filter),
     expand(options.expand),
   ].filter((p): p is string => p !== undefined);
+}
 
+export function build(options: QueryOptions = {}): string {
+  const parts = renderParts(options);
   return parts.length ? `?${parts.join("&")}` : "";
+}
+
+function renderExpandItem(item: ExpandItem): string {
+  if (typeof item === "string") return item;
+  const inner = renderParts(item.options).join(";");
+  return inner ? `${item.path}(${inner})` : item.path;
 }
 
 export type { FilterNode, FilterValue, ComparisonOp, FilterFn } from "./filter";
